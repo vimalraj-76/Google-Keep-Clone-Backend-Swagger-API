@@ -15,7 +15,7 @@ db.once("open", () => {
   console.log("Connected to MongoDB");
 });
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5050;
 
 swaggerSetup(app);
 
