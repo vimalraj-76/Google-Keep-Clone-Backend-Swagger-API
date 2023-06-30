@@ -46,11 +46,11 @@ router.get("/search", async (req, res) => {
   try {
     const notes = await Note.find({
       $or: [
-        { title: { $regex: new RegExp(query, "i") } },
-        { content: { $regex: new RegExp(query, "i") } },
-        { "list.item": { $regex: new RegExp(query, "i") } },
-        { "tags.name": { $regex: new RegExp(query, "i") } },
-        { image: { $regex: new RegExp(query, "i") } },
+        { title: { $regex: query, $options: "i" } },
+        { content: { $regex: query, $options: "i" } },
+        { "list.item": { $regex: query, $options: "i" } },
+        { "tags.name": { $regex: query, $options: "i" } },
+        { image: { $regex: query, $options: "i" } },
       ],
     });
     
@@ -174,15 +174,17 @@ router.get("/:id", async (req, res) => {
 router.post("/", upload.single("image"), async (req, res) => {
   const { title, content, list, tags } = req.body;
   let image = "";
+  var parsedList;
+  var parsedTags;
   if (req.file) {
     image = req.file.path;
   }
   if (typeof list === "string" || typeof tags === "string") {
-    var parsedList = JSON.parse(list);
-    var parsedTags = JSON.parse(tags);
+     parsedList = JSON.parse(list);
+     parsedTags = JSON.parse(tags);
   } else {
-    var parsedList = list;
-    var parsedTags = tags;
+     parsedList = list;
+     parsedTags = tags;
   }
   const note = new Note({
     title,
