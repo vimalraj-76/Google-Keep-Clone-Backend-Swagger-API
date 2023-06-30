@@ -46,23 +46,25 @@ router.get("/search", async (req, res) => {
   try {
     const notes = await Note.find({
       $or: [
-        { title: { $regex: query, $options: "i" } },
-        { content: { $regex: query, $options: "i" } },
-        { "list.item": { $regex: query, $options: "i" } },
-        { "tags.name": { $regex: query, $options: "i" } },
-        { image: { $regex: query, $options: "i" } },
+        { title: { $regex: new RegExp(query, "i") } },
+        { content: { $regex: new RegExp(query, "i") } },
+        { "list.item": { $regex: new RegExp(query, "i") } },
+        { "tags.name": { $regex: new RegExp(query, "i") } },
+        { image: { $regex: new RegExp(query, "i") } },
       ],
     });
-    {
-      notes.length > 0
-        ? res.json(notes)
-        : res.status(200).json({ message: "No Matching Notes Found" });
+    
+    if (notes.length > 0) {
+      res.json(notes);
+    } else {
+      res.status(200).json({ message: "No Matching Notes Found" });
     }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 /**
  * @swagger
