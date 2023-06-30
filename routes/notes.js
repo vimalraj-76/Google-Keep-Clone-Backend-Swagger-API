@@ -174,8 +174,8 @@ router.get("/:id", async (req, res) => {
 router.post("/", upload.single("image"), async (req, res) => {
   const { title, content, list, tags } = req.body;
   let image = "";
-  var parsedList;
-  var parsedTags;
+  let parsedList;
+  let parsedTags;
   if (req.file) {
     image = req.file.path;
   }
