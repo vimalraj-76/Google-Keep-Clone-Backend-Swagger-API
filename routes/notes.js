@@ -75,7 +75,7 @@ router.get("/search", [
       res.status(200).json({ message: "No Matching Notes Found" });
     }
   } catch (error) {
-    console.error(error);
+    console.error(error)
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
