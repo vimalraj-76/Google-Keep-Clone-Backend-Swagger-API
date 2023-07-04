@@ -43,27 +43,35 @@ const upload = multer({ storage: storage, limits: {
  *       500:
  *         description: Internal server error
  */
-router.get("/search", async (req, res) => {
-  const { query } = req.query;
+router.get('/search', [
+  query('query').notEmpty().withMessage('Search query is required'),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   try {
+    const sanitizedQuery = new RegExp(req.query.query, 'i');
+
     const notes = await Note.find({
       $or: [
-        { title: { $regex: query, $options: "i" } },
-        { content: { $regex: query, $options: "i" } },
-        { "list.item": { $regex: query, $options: "i" } },
-        { "tags.name": { $regex: query, $options: "i" } },
-        { image: { $regex: query, $options: "i" } },
+        { title: sanitizedQuery },
+        { content: sanitizedQuery },
+        { 'list.item': sanitizedQuery },
+        { 'tags.name': sanitizedQuery },
+        { image: sanitizedQuery },
       ],
     });
-    
+
     if (notes.length > 0) {
       res.json(notes);
     } else {
-      res.status(200).json({ message: "No Matching Notes Found" });
+      res.status(200).json({ message: 'No Matching Notes Found' });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
