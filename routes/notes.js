@@ -3,9 +3,9 @@ const router = express.Router();
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const { query, validationResult } = require('express-validator');
 require("dotenv").config();
-
+const { query, validationResult } = require('express-validator');
+const escapeStringRegexp = import('escape-string-regexp');
 const Note = require("../models/note");
 
 cloudinary.config({
@@ -18,13 +18,14 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "notes",
-    allowed_formats: ["jpg", "jpeg", "png", "pdf"],
+    allowed_formats: ["jpg", "jpeg", "png"],
   },
 });
 
-const upload = multer({ storage: storage, limits: {
-    fileSize: 10000000
-  } });
+const upload = multer({ storage: storage, limits:{fileSize:10000000} });
+function escapeRegex(query) {
+  return query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 /**
  * @swagger
@@ -44,8 +45,10 @@ const upload = multer({ storage: storage, limits: {
  *       500:
  *         description: Internal server error
  */
-router.get('/search', [
-  query('query').notEmpty().withMessage('Search query is required'),
+
+
+router.get("/search", [
+  query("query").notEmpty().withMessage("Search query is required"),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -53,28 +56,30 @@ router.get('/search', [
   }
 
   try {
-    const sanitizedQuery = new RegExp(req.query.query, 'i');
+    const sanitizedQuery = escapeRegex(req.query.query);
+    const regex = new RegExp(sanitizedQuery, "i");
 
     const notes = await Note.find({
       $or: [
-        { title: sanitizedQuery },
-        { content: sanitizedQuery },
-        { 'list.item': sanitizedQuery },
-        { 'tags.name': sanitizedQuery },
-        { image: sanitizedQuery },
+        { title: regex },
+        { content: regex },
+        { "list.item": regex },
+        { "tags.name": regex },
+        { image: regex },
       ],
     });
 
     if (notes.length > 0) {
       res.json(notes);
     } else {
-      res.status(200).json({ message: 'No Matching Notes Found' });
+      res.status(200).json({ message: "No Matching Notes Found" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 
 /**
@@ -191,11 +196,11 @@ router.post("/", upload.single("image"), async (req, res) => {
     image = req.file.path;
   }
   if (typeof list === "string" || typeof tags === "string") {
-     parsedList = JSON.parse(list);
-     parsedTags = JSON.parse(tags);
+    parsedList = JSON.parse(list);
+    parsedTags = JSON.parse(tags);
   } else {
-     parsedList = list;
-     parsedTags = tags;
+    parsedList = list;
+    parsedTags = tags;
   }
   const note = new Note({
     title,
@@ -292,6 +297,7 @@ router.delete("/:id", async (req, res) => {
     } else {
       return res.status(204).json({ message: "Note successfully deleted" });
     }
+    res.sendStatus(204);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
