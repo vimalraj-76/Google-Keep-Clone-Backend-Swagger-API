@@ -297,7 +297,6 @@ router.delete("/:id", async (req, res) => {
     } else {
       return res.status(204).json({ message: "Note successfully deleted" });
     }
-    res.sendStatus(204);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
