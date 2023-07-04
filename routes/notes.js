@@ -5,7 +5,6 @@ const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 require("dotenv").config();
 const { query, validationResult } = require('express-validator');
-const escapeStringRegexp = import('escape-string-regexp');
 const Note = require("../models/note");
 
 cloudinary.config({
@@ -23,10 +22,6 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({ storage: storage, limits:{fileSize:10000000} });
-function escapeRegex(query) {
-  return query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 /**
  * @swagger
  * /api/notes/search:
@@ -56,16 +51,15 @@ router.get("/search", [
   }
 
   try {
-    const sanitizedQuery = escapeRegex(req.query.query);
-    const regex = new RegExp(sanitizedQuery, "i");
+    const sanitizedQuery = new RegExp(req.query.query, 'i');
 
     const notes = await Note.find({
       $or: [
-        { title: regex },
-        { content: regex },
-        { "list.item": regex },
-        { "tags.name": regex },
-        { image: regex },
+        { title: sanitizedQuery },
+        { content: sanitizedQuery },
+        { "list.item": sanitizedQuery },
+        { "tags.name": sanitizedQuery },
+        { image: sanitizedQuery },
       ],
     });
 
