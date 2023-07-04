@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const { query, validationResult } = require('express-validator');
 require("dotenv").config();
 
 const Note = require("../models/note");
